@@ -1,0 +1,150 @@
+﻿<Window x:Class="Vet_Master.Dialogs.RecordDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Медичний запис"
+        Width="440" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="White">
+
+    <Window.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#999"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style x:Key="FieldBox" TargetType="TextBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderBrush" Value="#CCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="White" CornerRadius="5"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnPrimary" TargetType="Button">
+            <Setter Property="Background" Value="#185FA5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#0C447C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnSecondary" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#444"/>
+            <Setter Property="BorderBrush" Value="#CCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F0F0F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Padding="24">
+        <StackPanel>
+            <TextBlock x:Name="DialogTitle" Text="Новий медичний запис"
+                       FontSize="16" FontWeight="Medium"
+                       Foreground="#222" Margin="0,0,0,20"/>
+
+            <!-- Дата прийому -->
+            <TextBlock Text="ДАТА ПРИЙОМУ" Style="{StaticResource FieldLabel}"/>
+            <DatePicker x:Name="DpVisitDate"
+                        FontSize="13"
+                        Margin="0,0,0,12"
+                        BorderBrush="#CCC"
+                        SelectedDate="{x:Static system:DateTime.Today}"
+                        xmlns:system="clr-namespace:System;assembly=mscorlib"/>
+
+            <!-- Скарги -->
+            <TextBlock Text="СКАРГИ" Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="TxtComplaints"
+                     Style="{StaticResource FieldBox}"
+                     AcceptsReturn="True" Height="60"
+                     TextWrapping="Wrap"/>
+
+            <!-- Діагноз -->
+            <TextBlock Text="ДІАГНОЗ" Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="TxtDiagnosis" Style="{StaticResource FieldBox}"/>
+
+            <!-- Рекомендації -->
+            <TextBlock Text="РЕКОМЕНДАЦІЇ ДО ЛІКУВАННЯ" Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="TxtRecommendations"
+                     Style="{StaticResource FieldBox}"
+                     AcceptsReturn="True" Height="80"
+                     TextWrapping="Wrap"/>
+
+            <!-- Терміни лікування -->
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="ПОЧАТОК ЛІКУВАННЯ" Style="{StaticResource FieldLabel}"/>
+                    <DatePicker x:Name="DpTreatmentStart" FontSize="13" BorderBrush="#CCC"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="КІНЕЦЬ ЛІКУВАННЯ" Style="{StaticResource FieldLabel}"/>
+                    <DatePicker x:Name="DpTreatmentEnd" FontSize="13" BorderBrush="#CCC"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Кнопки -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                        Margin="0,12,0,0">
+                <Button Content="Скасувати"
+                        Style="{StaticResource BtnSecondary}"
+                        Margin="0,0,10,0"
+                        Click="BtnCancel_Click"/>
+                <Button Content="Зберегти"
+                        Style="{StaticResource BtnPrimary}"
+                        Click="BtnSave_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
