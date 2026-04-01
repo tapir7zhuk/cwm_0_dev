@@ -111,16 +111,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="ВИД" Style="{StaticResource FieldLabel}"/>
-                    <ComboBox x:Name="CmbSpecies" Style="{StaticResource FieldCombo}"
-                              IsEditable="True">
-                        <ComboBoxItem Content="Кіт"/>
-                        <ComboBoxItem Content="Пес"/>
-                        <ComboBoxItem Content="Кролик"/>
-                        <ComboBoxItem Content="Птах"/>
-                        <ComboBoxItem Content="Гризун"/>
-                        <ComboBoxItem Content="Рептилія"/>
-                        <ComboBoxItem Content="Інше"/>
-                    </ComboBox>
+                    <ComboBox x:Name="CmbSpecies" Style="{StaticResource FieldCombo}" IsEditable="True"/>
                 </StackPanel>
             </Grid>
 
@@ -146,6 +137,7 @@
             <ComboBox x:Name="CmbSex" Style="{StaticResource FieldCombo}">
                 <ComboBoxItem Content="Чоловіча"/>
                 <ComboBoxItem Content="Жіноча"/>
+                <ComboBoxItem Content="Інше"/>
             </ComboBox>
 
             <!-- Рядок: Власник + Телефон -->

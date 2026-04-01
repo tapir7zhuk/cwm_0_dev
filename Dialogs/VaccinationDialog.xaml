@@ -16,19 +16,11 @@
             <!-- Назва вакцини -->
             <TextBlock Text="НАЗВА ВАКЦИНИ" FontSize="10" FontWeight="Medium"
                        Foreground="#999" Margin="0,0,0,4"/>
-            <ComboBox x:Name="CmbVaccine"
+            <ComboBox x:Name="CmbVaccine" 
                       IsEditable="True"
                       FontSize="13" Padding="8,6"
-                      BorderBrush="#CCC" Margin="0,0,0,12">
-                <ComboBoxItem Content="Сказ (Nobivac Rabies)"/>
-                <ComboBoxItem Content="Панлейкопенія (Felocell)"/>
-                <ComboBoxItem Content="Кальцивіроз / Герпесвірус"/>
-                <ComboBoxItem Content="Чумка (Nobivac DHPPi)"/>
-                <ComboBoxItem Content="Лептоспіроз"/>
-                <ComboBoxItem Content="Парвовірус"/>
-                <ComboBoxItem Content="Коронавірус"/>
-            </ComboBox>
-
+                      BorderBrush="#CCC" Margin="0,0,0,12"/>
+            
             <!-- Дата -->
             <TextBlock Text="ДАТА ЩЕПЛЕННЯ" FontSize="10" FontWeight="Medium"
                        Foreground="#999" Margin="0,0,0,4"/>

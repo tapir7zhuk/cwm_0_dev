@@ -106,25 +106,31 @@ public partial class MainWindow : Window
     // ═══════════════════════════════════
     // Тварини: Додати / Редагувати / Видалити
     // ═══════════════════════════════════
-
-    private async void BtnAddAnimal_Click(object sender, RoutedEventArgs e)
-    {
-        var dlg = new AnimalDialog();
-        if (dlg.ShowDialog() != true) return;
-
-        await _animalService.AddAsync(dlg.Result!);
-        await RefreshAllAsync();
-    }
-
-    private async void BtnEditAnimal_Click(object sender, RoutedEventArgs e)
+    private async void BtnAddRecord_Click(object sender, RoutedEventArgs e)
     {
         if (_selectedAnimal is null) return;
 
-        var dlg = new AnimalDialog(_selectedAnimal);
+        var dlg = new RecordDialog();
         if (dlg.ShowDialog() != true) return;
 
-        await _animalService.UpdateAsync(dlg.Result!);
-        await RefreshAllAsync();
+        dlg.Result!.AnimalCardId = _selectedAnimal.Id;
+        await _recordService.AddAsync(dlg.Result);
+        _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal.Id);
+        ShowDetail(_selectedAnimal!);
+    }
+
+    private async void BtnEditRecord_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not int id) return;
+        var record = _selectedAnimal?.Records.FirstOrDefault(r => r.Id == id);
+        if (record is null) return;
+
+        var dlg = new RecordDialog(record);
+        if (dlg.ShowDialog() != true) return;
+
+        await _recordService.UpdateAsync(dlg.Result!);
+        _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal!.Id);
+        ShowDetail(_selectedAnimal!);
     }
 
     private async void BtnDeleteAnimal_Click(object sender, RoutedEventArgs e)
@@ -161,30 +167,26 @@ public partial class MainWindow : Window
     // Записи хвороб
     // ═══════════════════════════════════
 
-    private async void BtnAddRecord_Click(object sender, RoutedEventArgs e)
+    private async void BtnAddAnimal_Click(object sender, RoutedEventArgs e)
     {
-        if (_selectedAnimal is null) return;
-
-        var dlg = new RecordDialog();
+        var species = await GetSpeciesListAsync();
+        var dlg = new AnimalDialog(species);
         if (dlg.ShowDialog() != true) return;
 
-        dlg.Result!.AnimalCardId = _selectedAnimal.Id;
-        await _recordService.AddAsync(dlg.Result);
-        _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal.Id);
-        ShowDetail(_selectedAnimal!);
+        await _animalService.AddAsync(dlg.Result!);
+        await RefreshAllAsync();
     }
 
-    private async void BtnEditRecord_Click(object sender, RoutedEventArgs e)
+    private async void BtnEditAnimal_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not int id) return;
-        var record = _selectedAnimal?.Records.FirstOrDefault(r => r.Id == id);
-        if (record is null) return;
-
-        var dlg = new RecordDialog(record);
+        if (_selectedAnimal is null) return; // було AnimalsGrid.SelectedItem — неправильно
+        var species = await GetSpeciesListAsync();
+        var dlg = new AnimalDialog(_selectedAnimal, species);
         if (dlg.ShowDialog() != true) return;
 
-        await _recordService.UpdateAsync(dlg.Result!);
-        _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal!.Id);
+        await _animalService.UpdateAsync(dlg.Result!);
+        await RefreshAllAsync();
+        _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal.Id);
         ShowDetail(_selectedAnimal!);
     }
 
@@ -210,8 +212,10 @@ public partial class MainWindow : Window
     private async void BtnAddVaccination_Click(object sender, RoutedEventArgs e)
     {
         if (_selectedAnimal is null) return;
-        var dlg = new VaccinationDialog();
+        var vaccines = await GetVaccinesListAsync();
+        var dlg = new VaccinationDialog(vaccines);
         if (dlg.ShowDialog() != true) return;
+
         dlg.Result!.AnimalCardId = _selectedAnimal.Id;
         await _vaccinationService.AddAsync(dlg.Result);
         _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal.Id);
@@ -345,5 +349,50 @@ public partial class MainWindow : Window
     {
         try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); }
         catch { /* якщо немає переглядача — просто не відкриє */ }
+    }
+
+    private async void BtnRefreshStats_Click(object sender, RoutedEventArgs e)
+    {
+        await RefreshStatisticsAsync();
+    }
+    private Task<List<string>> GetSpeciesListAsync()
+    {
+        var fromAnimals = _allAnimals
+            .Select(a => a.Species)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct()
+            .OrderBy(s => s)
+            .ToList();
+
+        if (!fromAnimals.Any())
+            fromAnimals = new List<string>
+            { "Кіт", "Пес", "Кролик", "Птах", "Гризун", "Рептилія", "Інше" };
+
+        return Task.FromResult(fromAnimals);
+    }
+
+    private Task<List<string>> GetVaccinesListAsync()
+    {
+        var fromAnimals = _allAnimals
+            .SelectMany(a => a.Vaccinations)
+            .Select(v => v.VaccineName)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct()
+            .OrderBy(v => v)
+            .ToList();
+
+        if (!fromAnimals.Any())
+            fromAnimals = new List<string>
+        {
+            "Сказ (Nobivac Rabies)",
+            "Панлейкопенія (Felocell)",
+            "Кальцивіроз / Герпесвірус",
+            "Чумка (Nobivac DHPPi)",
+            "Лептоспіроз",
+            "Парвовірус",
+            "Коронавірус"
+        };
+
+        return Task.FromResult(fromAnimals);
     }
 }

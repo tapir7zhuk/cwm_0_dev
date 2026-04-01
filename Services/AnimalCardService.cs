@@ -45,4 +45,5 @@ public class AnimalCardService(AppDbContext db)
             await db.SaveChangesAsync();
         }
     }
+
 }

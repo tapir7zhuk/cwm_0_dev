@@ -23,25 +23,26 @@ public partial class AnimalDialog : Window
     private readonly AnimalCard? _existing;
 
     // Додати нову
-    public AnimalDialog()
-    {
-        InitializeComponent();
-    }
+public AnimalDialog(IEnumerable<string> species)
+{
+    InitializeComponent();
+    CmbSpecies.ItemsSource = species;
+}
 
-    // Редагувати існуючу
-    public AnimalDialog(AnimalCard animal) : this()
-    {
-        _existing = animal;
-        DialogTitle.Text = "Редагувати тварину";
-        TxtName.Text = animal.Name;
-        CmbSpecies.Text = animal.Species;
-        TxtBreed.Text = animal.Breed;
-        TxtAge.Text = animal.Age.ToString();
-        CmbSex.Text = animal.Sex;
-        TxtOwner.Text = animal.OwnerName;
-        TxtPhone.Text = animal.OwnerPhone;
-        TxtMedia.Text = animal.MediaPath;
-    }
+// Редагувати існуючу
+public AnimalDialog(AnimalCard animal, IEnumerable<string> species) : this(species)
+{
+    _existing = animal;
+    DialogTitle.Text = "Редагувати тварину";
+    TxtName.Text = animal.Name;
+    CmbSpecies.Text = animal.Species;
+    TxtBreed.Text = animal.Breed;
+    TxtAge.Text = animal.Age.ToString();
+    CmbSex.Text = animal.Sex;
+    TxtOwner.Text = animal.OwnerName;
+    TxtPhone.Text = animal.OwnerPhone;
+    TxtMedia.Text = animal.MediaPath;
+}
 
     private void BtnBrowse_Click(object sender, RoutedEventArgs e)
     {

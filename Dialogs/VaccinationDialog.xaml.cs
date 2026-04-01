@@ -20,10 +20,11 @@ public partial class VaccinationDialog : Window
 {
     public Vaccination? Result { get; private set; }
 
-    public VaccinationDialog()
+    public VaccinationDialog(IEnumerable<string> vaccines)
     {
         InitializeComponent();
         DpDate.SelectedDate = DateTime.Today;
+        CmbVaccine.ItemsSource = vaccines;
     }
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
@@ -40,16 +41,14 @@ public partial class VaccinationDialog : Window
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-
         Result = new Vaccination
         {
             VaccineName = CmbVaccine.Text.Trim(),
             VaccinationDate = DpDate.SelectedDate.Value
         };
-
         DialogResult = true;
     }
-    private void BtnCancel_Click(object sender, RoutedEventArgs e)
-            => DialogResult = false;
 
+    private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        => DialogResult = false;
 }
