@@ -2,9 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Configuration;
-using System.Data;
-using System.Windows;
+using System.IO;
 using System.Windows;
 using Vet_Master.Data;
 using Vet_Master.Services;
@@ -13,34 +11,40 @@ namespace Vet_Master;
 
 public partial class App : Application
 {
-    private IHost _host = null!;
+    internal IHost _host = null!;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
         _host = Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((_, config) =>
+            {
+                // Явно вказуємо де знаходиться appsettings.json
+                config.SetBasePath(Directory.GetCurrentDirectory());
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            })
             .ConfigureServices((context, services) =>
             {
-                var cs = context.Configuration.GetConnectionString("DefaultConnection");
+                var cs = context.Configuration
+                                .GetConnectionString("DefaultConnection");
 
                 services.AddDbContext<AppDbContext>(opt =>
                     opt.UseSqlServer(cs));
 
-                // Сервіси
                 services.AddTransient<AnimalCardService>();
                 services.AddTransient<RecordService>();
-
-                // Головне вікно
+                services.AddTransient<VaccinationService>();
+                services.AddSingleton<PdfExportService>();
                 services.AddSingleton<MainWindow>();
             })
             .Build();
 
         _host.Start();
 
-        // Автоматично застосувати міграції при старті
         using var scope = _host.Services.CreateScope();
-        scope.ServiceProvider.GetRequiredService<AppDbContext>()
+        scope.ServiceProvider
+             .GetRequiredService<AppDbContext>()
              .Database.Migrate();
 
         _host.Services.GetRequiredService<MainWindow>().Show();

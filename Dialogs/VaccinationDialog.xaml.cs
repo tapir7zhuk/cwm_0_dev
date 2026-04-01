@@ -49,4 +49,7 @@ public partial class VaccinationDialog : Window
 
         DialogResult = true;
     }
+    private void BtnCancel_Click(object sender, RoutedEventArgs e)
+            => DialogResult = false;
+
 }

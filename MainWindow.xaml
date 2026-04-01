@@ -462,6 +462,15 @@
                                                                             Tag="{Binding Id}"
                                                                             Click="BtnDeleteRecord_Click"/>
                                                                 </StackPanel>
+                                                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                                                                   
+                                                                    <!-- Кнопка PDF з'являється лише якщо є вибраний запис -->
+                                                                    <Button x:Name="BtnExportRecordPdf"
+                                                                            Content="⬇ PDF запису"
+                                                                            Style="{StaticResource BtnSecondary}"
+                                                                            Margin="8,0,0,0"
+                                                                            Click="BtnExportRecordPdf_Click"/>
+                                                                </StackPanel>
                                                             </StackPanel>
                                                         </Border>
                                                     </DataTemplate>
@@ -478,6 +487,12 @@
                                                 <Button Content="+ Додати щеплення"
                                                         Style="{StaticResource BtnPrimary}"
                                                         Click="BtnAddVaccination_Click"/>
+                                            </StackPanel>
+                                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">              
+                                                <Button Content="⬇ PDF щеплень"
+                                                        Style="{StaticResource BtnSecondary}"
+                                                        Margin="8,0,0,0"
+                                                        Click="BtnExportVaccinationsPdf_Click"/>
                                             </StackPanel>
                                             <DataGrid x:Name="VaccinationGrid"
                                                       AutoGenerateColumns="False"
@@ -525,108 +540,125 @@
                  ТАБ 2: СТАТИСТИКА
             ══════════════════════════════════════ -->
             <TabItem Header="Статистика" Style="{StaticResource MainTab}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20,16">
-                    <StackPanel MaxWidth="700" HorizontalAlignment="Left">
+                <DockPanel>
 
-                        <!-- Картки з цифрами -->
-                        <UniformGrid Columns="3" Margin="0,0,0,20">
-                            <!-- Лікуються -->
-                            <Border Background="White" BorderBrush="#E0E0E0"
-                                    BorderThickness="1" CornerRadius="8"
-                                    Padding="16,14" Margin="0,0,12,0">
-                                <StackPanel>
-                                    <TextBlock Text="ЗАРАЗ ЛІКУЮТЬСЯ" FontSize="10"
-                                               Foreground="#999" FontWeight="Medium"/>
-                                    <TextBlock x:Name="StatActive" Text="—"
-                                               FontSize="28" FontWeight="Medium"
-                                               Foreground="#185FA5" Margin="0,4,0,0"/>
-                                    <TextBlock x:Name="StatActiveSub" FontSize="11"
-                                               Foreground="#AAA"/>
-                                </StackPanel>
-                            </Border>
-                            <!-- Завершили минулого місяця -->
-                            <Border Background="White" BorderBrush="#E0E0E0"
-                                    BorderThickness="1" CornerRadius="8"
-                                    Padding="16,14" Margin="0,0,12,0">
-                                <StackPanel>
-                                    <TextBlock Text="ЗАВЕРШИЛИ МИН. МІСЯЦЬ" FontSize="10"
-                                               Foreground="#999" FontWeight="Medium"/>
-                                    <TextBlock x:Name="StatFinished" Text="—"
-                                               FontSize="28" FontWeight="Medium"
-                                               Foreground="#0F6E56" Margin="0,4,0,0"/>
-                                    <TextBlock x:Name="StatFinishedSub" FontSize="11"
-                                               Foreground="#AAA"/>
-                                </StackPanel>
-                            </Border>
-                            <!-- Всього тварин -->
-                            <Border Background="White" BorderBrush="#E0E0E0"
-                                    BorderThickness="1" CornerRadius="8"
-                                    Padding="16,14">
-                                <StackPanel>
-                                    <TextBlock Text="ВСЬОГО ТВАРИН" FontSize="10"
-                                               Foreground="#999" FontWeight="Medium"/>
-                                    <TextBlock x:Name="StatTotal" Text="—"
-                                               FontSize="28" FontWeight="Medium"
-                                               Foreground="#444" Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Border>
-                        </UniformGrid>
+                    <!-- Тулбар -->
+                    <Border DockPanel.Dock="Top" Background="White"
+                BorderBrush="#F0F0F0" BorderThickness="0,0,0,1"
+                Padding="20,8">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="⬇ Експорт PDF"
+                        Style="{StaticResource BtnSecondary}"
+                        Click="BtnExportStatsPdf_Click"/>
+                        </StackPanel>
+                    </Border>
 
-                        <!-- По категоріям -->
-                        <TextBlock Text="ПО ВИДАХ" FontSize="11" FontWeight="Medium"
-                                   Foreground="#999" Margin="0,0,0,10"/>
-                        <ItemsControl x:Name="StatBySpecies">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <DockPanel Margin="0,0,0,8">
-                                        <TextBlock DockPanel.Dock="Right"
-                                                   Text="{Binding Count}"
-                                                   FontSize="12" Foreground="#666"
-                                                   Width="24" TextAlignment="Right"/>
-                                        <TextBlock Text="{Binding Species}"
-                                                   FontSize="12" Foreground="#444"
-                                                   Width="80"/>
-                                        <Border Background="#E8F0FA" CornerRadius="3" Height="14">
-                                            <Border Background="#185FA5" CornerRadius="3"
-                                                    HorizontalAlignment="Left"
-                                                    Width="{Binding BarWidth}"/>
-                                        </Border>
-                                    </DockPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20,16">
+                        <StackPanel MaxWidth="700" HorizontalAlignment="Left">
 
-                        <!-- Таблиця: хто зараз лікується -->
-                        <TextBlock Text="ХТО ЗАРАЗ ЛІКУЄТЬСЯ" FontSize="11"
-                                   FontWeight="Medium" Foreground="#999"
-                                   Margin="0,20,0,10"/>
-                        <DataGrid x:Name="StatActiveGrid"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  RowHeaderWidth="0"
-                                  GridLinesVisibility="Horizontal"
-                                  HorizontalGridLinesBrush="#F0F0F0"
-                                  BorderThickness="1"
-                                  BorderBrush="#E0E0E0"
-                                  Background="White"
-                                  FontSize="12">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Тварина"
-                                                    Binding="{Binding AnimalCard.Name}" Width="120"/>
-                                <DataGridTextColumn Header="Діагноз"
-                                                    Binding="{Binding Diagnosis}" Width="*"/>
-                                <DataGridTextColumn Header="Початок лікування"
-                                                    Binding="{Binding TreatmentStart, StringFormat=dd.MM.yyyy}"
-                                                    Width="130"/>
-                                <DataGridTextColumn Header="Кінець лікування"
-                                                    Binding="{Binding TreatmentEnd, StringFormat=dd.MM.yyyy, TargetNullValue='—'}"
-                                                    Width="130"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
+                            <!-- Картки з цифрами -->
+                            <UniformGrid Columns="4" Margin="0,0,0,20">
+                                <Border Padding="0,0,4,0">
+                                    <Border Background="White" BorderBrush="#E0E0E0"
+                                BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                        <StackPanel>
+                                            <TextBlock Text="ЗАРАЗ ЛІКУЮТЬСЯ" FontSize="10" Foreground="#999" FontWeight="Medium"/>
+                                            <TextBlock x:Name="StatActive" Text="—" FontSize="28" FontWeight="Medium" Foreground="#185FA5" Margin="0,4,0,0"/>
+                                            <TextBlock x:Name="StatActiveSub" FontSize="11" Foreground="#AAA"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Border>
 
-                    </StackPanel>
-                </ScrollViewer>
+                                <Border Padding="4,0">
+                                    <Border Background="White" BorderBrush="#E0E0E0"
+                                BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                        <StackPanel>
+                                            <TextBlock Text="ЗАВЕРШИЛИ МИН. МІСЯЦЬ" FontSize="10" Foreground="#999" FontWeight="Medium"/>
+                                            <TextBlock x:Name="StatFinished" Text="—" FontSize="28" FontWeight="Medium" Foreground="#0F6E56" Margin="0,4,0,0"/>
+                                            <TextBlock x:Name="StatFinishedSub" FontSize="11" Foreground="#AAA"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Border>
+
+                                <Border Padding="4,0">
+                                    <Border Background="White" BorderBrush="#E0E0E0"
+                                BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                        <StackPanel>
+                                            <TextBlock Text="ВСЬОГО ТВАРИН" FontSize="10" Foreground="#999" FontWeight="Medium"/>
+                                            <TextBlock x:Name="StatTotal" Text="—" FontSize="28" FontWeight="Medium" Foreground="#444" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Border>
+
+                                <Border Padding="4,0,0,0">
+                                    <Border Background="White" BorderBrush="#E0E0E0"
+                                BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                        <StackPanel>
+                                            <TextBlock Text="ВАКЦИНОВАНІ" FontSize="10" Foreground="#999" FontWeight="Medium"/>
+                                            <TextBlock x:Name="StatVaccinated" Text="—" FontSize="28" FontWeight="Medium" Foreground="#7B3FA0" Margin="0,4,0,0"/>
+                                            <TextBlock x:Name="StatVaccinatedSub" FontSize="11" Foreground="#AAA"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Border>
+                            </UniformGrid>
+
+                            <!-- По видах -->
+                            <TextBlock Text="ПО ВИДАХ" FontSize="11" FontWeight="Medium"
+                           Foreground="#999" Margin="0,0,0,10"/>
+                            <ItemsControl x:Name="StatBySpecies">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Margin="0,0,0,8">
+                                            <TextBlock DockPanel.Dock="Right"
+                                           Text="{Binding Count}"
+                                           FontSize="12" Foreground="#666"
+                                           Width="24" TextAlignment="Right"/>
+                                            <TextBlock Text="{Binding Species}"
+                                           FontSize="12" Foreground="#444"
+                                           Width="80"/>
+                                            <Border Background="#E8F0FA" CornerRadius="3" Height="14">
+                                                <Border Background="#185FA5" CornerRadius="3"
+                                            HorizontalAlignment="Left"
+                                            Width="{Binding BarWidth}"/>
+                                            </Border>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Таблиця: хто зараз лікується -->
+                            <TextBlock Text="ХТО ЗАРАЗ ЛІКУЄТЬСЯ" FontSize="11"
+                           FontWeight="Medium" Foreground="#999"
+                           Margin="0,20,0,10"/>
+                            <DataGrid x:Name="StatActiveGrid"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          IsReadOnly="True"
+                          RowHeaderWidth="0"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#F0F0F0"
+                          BorderThickness="1"
+                          BorderBrush="#E0E0E0"
+                          Background="White"
+                          FontSize="12">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Тварина"
+                                            Binding="{Binding AnimalCard.Name}" Width="120"/>
+                                    <DataGridTextColumn Header="Діагноз"
+                                            Binding="{Binding Diagnosis}" Width="*"/>
+                                    <DataGridTextColumn Header="Початок лікування"
+                                            Binding="{Binding TreatmentStart, StringFormat=dd.MM.yyyy}"
+                                            Width="130"/>
+                                    <DataGridTextColumn Header="Кінець лікування"
+                                            Binding="{Binding TreatmentEnd, StringFormat=dd.MM.yyyy, TargetNullValue='—'}"
+                                            Width="130"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                </DockPanel>
             </TabItem>
 
         </TabControl>

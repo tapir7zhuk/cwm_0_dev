@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
+using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -8,27 +11,35 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
+using Vet_Master.Dialogs;
 using Vet_Master.Models;
 using Vet_Master.Services;
-using Vet_Master.Dialogs;
 
 namespace Vet_Master;
 
 public partial class MainWindow : Window
 {
+    // Поля класу
     private readonly AnimalCardService _animalService;
     private readonly RecordService _recordService;
+    private readonly VaccinationService _vaccinationService;
+    private readonly PdfExportService _pdfExport;
 
     private List<AnimalCard> _allAnimals = new();
     private AnimalCard? _selectedAnimal;
 
-    public MainWindow(AnimalCardService animalService, RecordService recordService)
+    // Конструктор 
+    public MainWindow(
+    AnimalCardService animalService,
+    RecordService recordService,
+    VaccinationService vaccinationService,
+    PdfExportService pdfExport)
     {
         InitializeComponent();
         _animalService = animalService;
         _recordService = recordService;
+        _vaccinationService = vaccinationService;
+        _pdfExport = pdfExport;
         Loaded += async (_, _) => await RefreshAllAsync();
     }
 
@@ -199,18 +210,10 @@ public partial class MainWindow : Window
     private async void BtnAddVaccination_Click(object sender, RoutedEventArgs e)
     {
         if (_selectedAnimal is null) return;
-
         var dlg = new VaccinationDialog();
         if (dlg.ShowDialog() != true) return;
-
         dlg.Result!.AnimalCardId = _selectedAnimal.Id;
-
-        // Додаємо через той самий сервіс або окремий — для простоти через DB напряму
-        var scope = ((App)Application.Current)._host.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<Data.AppDbContext>();
-        db.Vaccinations.Add(dlg.Result);
-        await db.SaveChangesAsync();
-
+        await _vaccinationService.AddAsync(dlg.Result);
         _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal.Id);
         ShowDetail(_selectedAnimal!);
     }
@@ -218,12 +221,10 @@ public partial class MainWindow : Window
     private async void BtnDeleteVaccination_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as Button)?.Tag is not int id) return;
-
-        var scope = ((App)Application.Current)._host.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<Data.AppDbContext>();
-        var v = await db.Vaccinations.FindAsync(id);
-        if (v is not null) { db.Vaccinations.Remove(v); await db.SaveChangesAsync(); }
-
+        var confirm = MessageBox.Show("Видалити це щеплення?", "Підтвердження",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (confirm != MessageBoxResult.Yes) return;
+        await _vaccinationService.DeleteAsync(id);
         _selectedAnimal = await _animalService.GetByIdAsync(_selectedAnimal!.Id);
         ShowDetail(_selectedAnimal!);
     }
@@ -237,12 +238,15 @@ public partial class MainWindow : Window
         var active = await _recordService.GetActiveAsync();
         var finished = await _recordService.GetFinishedLastMonthAsync();
         var total = _allAnimals.Count;
+        var vaccinated = _allAnimals.Count(a => a.Vaccinations.Any());
 
         StatActive.Text = active.Count.ToString();
         StatActiveSub.Text = $"з {total} тварин";
         StatFinished.Text = finished.Count.ToString();
         StatFinishedSub.Text = DateTime.Today.AddMonths(-1).ToString("MMMM yyyy");
         StatTotal.Text = total.ToString();
+        StatVaccinated.Text = vaccinated.ToString();
+        StatVaccinatedSub.Text = $"з {total} тварин";
 
         // По видах
         var bySpecies = _allAnimals
@@ -261,5 +265,85 @@ public partial class MainWindow : Window
         }).ToList();
 
         StatActiveGrid.ItemsSource = active;
+    }
+
+    // ═══════════════════════════════════
+    // PDF Експорт
+    // ═══════════════════════════════════
+
+    private async void BtnExportStatsPdf_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SaveFileDialog
+        {
+            Title = "Зберегти статистику",
+            Filter = "PDF файл|*.pdf",
+            FileName = $"Статистика_{DateTime.Now:yyyyMMdd}"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        // Збираємо дані
+        var active = await _recordService.GetActiveAsync();
+        var finished = await _recordService.GetFinishedLastMonthAsync();
+        var vaccinated = _allAnimals.Count(a => a.Vaccinations.Any());
+
+        var bySpecies = _allAnimals
+            .GroupBy(a => a.Species)
+            .Select(g => (g.Key, g.Count()))
+            .ToList();
+
+        _pdfExport.ExportStatistics(
+            activeCount: active.Count,
+            finishedLastMonth: finished.Count,
+            totalAnimals: _allAnimals.Count,
+            vaccinatedCount: vaccinated,
+            activeRecords: active,
+            bySpecies: bySpecies,
+            outputPath: dlg.FileName);
+
+        OpenPdf(dlg.FileName);
+    }
+
+    private void BtnExportRecordPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedAnimal is null) return;
+        if (RecordListBox.SelectedItem is not Record record)
+        {
+            MessageBox.Show("Оберіть запис у списку.", "Підказка",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dlg = new SaveFileDialog
+        {
+            Title = "Зберегти медичний запис",
+            Filter = "PDF файл|*.pdf",
+            FileName = $"{_selectedAnimal.Name}_{record.Diagnosis}_{record.VisitDate:yyyyMMdd}"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        _pdfExport.ExportRecord(_selectedAnimal, record, dlg.FileName);
+        OpenPdf(dlg.FileName);
+    }
+
+    private void BtnExportVaccinationsPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedAnimal is null) return;
+
+        var dlg = new SaveFileDialog
+        {
+            Title = "Зберегти щеплення",
+            Filter = "PDF файл|*.pdf",
+            FileName = $"{_selectedAnimal.Name}_Щеплення_{DateTime.Now:yyyyMMdd}"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        _pdfExport.ExportVaccinations(_selectedAnimal, dlg.FileName);
+        OpenPdf(dlg.FileName);
+    }
+
+    private static void OpenPdf(string path)
+    {
+        try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); }
+        catch { /* якщо немає переглядача — просто не відкриє */ }
     }
 }
